@@ -11,8 +11,9 @@ if ($env:GITHUB_SHA) {
     $tag = (Get-Date -Format "yyyyMMddHHmmss")
 }
 
-$imageTagged = "$dockerUsername/$imageName:$tag"
-$imageLatest = "$dockerUsername/$imageName:latest"
+# FIX: use ${} to avoid colon parsing issue
+$imageTagged = "${dockerUsername}/${imageName}:${tag}"
+$imageLatest = "${dockerUsername}/${imageName}:latest"
 
 Write-Host "Building Docker image from current directory..."
 
