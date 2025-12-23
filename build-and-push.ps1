@@ -2,56 +2,23 @@
 # CONFIG
 # =========================
 $dockerUsername = "rutwik31"
-$imageName = "python-app"
 
-# Dynamic tag (commit SHA or timestamp)
-if ($env:GITHUB_SHA) {
-    $tag = $env:GITHUB_SHA.Substring(0,7)
-} else {
-    $tag = (Get-Date -Format "yyyyMMddHHmmss")
+# Docker Hub API URL for public repositories
+$apiUrl = "https://hub.docker.com/v2/repositories/$dockerUsername/?page_size=100"
+
+Write-Host "Fetching public Docker Hub repositories for user: $dockerUsername ..."
+
+# Call Docker Hub API
+$response = Invoke-RestMethod -Uri $apiUrl -Method Get
+
+# Check if results exist
+if ($response.results.Count -eq 0) {
+    Write-Host "No public repositories found for $dockerUsername"
+    exit
 }
 
-# Full image names
-$imageTagged = "${dockerUsername}/${imageName}:${tag}"
-$imageLatest = "${dockerUsername}/${imageName}:latest"
-
-# =========================
-# INFORM USER
-# =========================
-Write-Host "==============================="
-Write-Host "Docker Build & Push Script"
-Write-Host "Repository: $dockerUsername/$imageName"
-Write-Host "Versioned tag: $imageTagged"
-Write-Host "Latest tag: $imageLatest"
-Write-Host "==============================="
-
-# =========================
-# BUILD (uses existing Dockerfile)
-# =========================
-Write-Host "Building Docker image from current directory..."
-docker build -t $imageTagged .
-
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "Docker build failed"
-    exit 1
+# List repository names
+Write-Host "Public Docker Hub repositories:"
+foreach ($repo in $response.results) {
+    Write-Host "- " $repo.name
 }
-
-# =========================
-# TAG AS LATEST
-# =========================
-docker tag $imageTagged $imageLatest
-
-# =========================
-# PUSH TO DOCKER HUB
-# =========================
-Write-Host "Pushing Docker images to Docker Hub..."
-docker push $imageTagged
-docker push $imageLatest
-
-Write-Host "==============================="
-Write-Host "Docker image push completed!"
-Write-Host "Repository: $dockerUsername/$imageName"
-Write-Host "Versioned image: $imageTagged"
-Write-Host "Latest image: $imageLatest"
-Write-Host "You can find your images at: https://hub.docker.com/r/$dockerUsername/$imageName"
-Write-Host "==============================="
