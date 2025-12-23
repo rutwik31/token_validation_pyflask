@@ -11,15 +11,24 @@ if ($env:GITHUB_SHA) {
     $tag = (Get-Date -Format "yyyyMMddHHmmss")
 }
 
-# FIX: use ${} to avoid colon parsing issue
+# Full image names
 $imageTagged = "${dockerUsername}/${imageName}:${tag}"
 $imageLatest = "${dockerUsername}/${imageName}:latest"
 
-Write-Host "Building Docker image from current directory..."
+# =========================
+# INFORM USER
+# =========================
+Write-Host "==============================="
+Write-Host "Docker Build & Push Script"
+Write-Host "Repository: $dockerUsername/$imageName"
+Write-Host "Versioned tag: $imageTagged"
+Write-Host "Latest tag: $imageLatest"
+Write-Host "==============================="
 
 # =========================
 # BUILD (uses existing Dockerfile)
 # =========================
+Write-Host "Building Docker image from current directory..."
 docker build -t $imageTagged .
 
 if ($LASTEXITCODE -ne 0) {
@@ -35,9 +44,14 @@ docker tag $imageTagged $imageLatest
 # =========================
 # PUSH TO DOCKER HUB
 # =========================
+Write-Host "Pushing Docker images to Docker Hub..."
 docker push $imageTagged
 docker push $imageLatest
 
-Write-Host "Docker image pushed successfully"
-Write-Host $imageTagged
-Write-Host $imageLatest
+Write-Host "==============================="
+Write-Host "Docker image push completed!"
+Write-Host "Repository: $dockerUsername/$imageName"
+Write-Host "Versioned image: $imageTagged"
+Write-Host "Latest image: $imageLatest"
+Write-Host "You can find your images at: https://hub.docker.com/r/$dockerUsername/$imageName"
+Write-Host "==============================="
